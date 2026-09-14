@@ -42,14 +42,12 @@
     }
     const s = document.createElement('script');
     s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-    s.crossOrigin = 'anonymous';
     s.onload = () => { THREE = window.THREE; setupThreeScene(); };
     s.onerror = () => setupCanvas2DFallback();
     document.head.appendChild(s);
   }
 
   function setupThreeScene() {
-    if(typeof _preMarkThreeReady==='function') _preMarkThreeReady();
     try {
       const canvas = $('bg-canvas');
       renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false });
@@ -209,7 +207,6 @@
 
   /* 2D Fallback */
   function setupCanvas2DFallback(){
-    if(typeof _preMarkThreeReady==='function') _preMarkThreeReady();
     const cv=$('bg-canvas'), ctx=cv.getContext('2d');
     cv.width=innerWidth; cv.height=innerHeight;
     const pts=Array.from({length:150},()=>({
@@ -322,102 +319,21 @@
   /* ============================================================
      PRELOADER
      ============================================================ */
-  /* ============================================================
-     PRELOADER — real asset-aware progress
-     Progress bar advances as real milestones actually complete,
-     not on a fake random timer. Between steps a smooth easing
-     animation keeps it feeling alive without lying to the user.
-     ============================================================ */
-  let _preProgress = 0;
-  let _preTarget   = 0;
-  let _preRAF      = null;
-  let _preDone     = false;
-
-  const PRE_STEPS = [
-    { msg: 'Preparing the stage...',    target: 12 },
-    { msg: 'Loading the universe...',   target: 35 },
-    { msg: 'Gathering the memories...', target: 55 },
-    { msg: 'Lighting the candles...',   target: 72 },
-    { msg: 'Writing the letter...',     target: 85 },
-    { msg: 'Almost ready...',           target: 95 },
-    { msg: 'Opening the door...',       target: 100 },
-  ];
-
-  function _preSetMsg(msg){
-    const sub=$('pre-sub');
-    if(!sub) return;
-    sub.style.opacity=0;
-    setTimeout(()=>{ sub.textContent=msg; sub.style.opacity=1; },220);
-  }
-
-  function _preAdvanceTo(targetPct, onReach){
-    _preTarget = Math.max(_preTarget, targetPct);
-    if(onReach){
-      const check=()=>{ _preProgress>=targetPct ? onReach() : setTimeout(check,80); };
-      check();
-    }
-  }
-
-  function _preStartRaf(){
-    if(_preRAF) return;
-    const bar=$('pre-bar'), pct=$('pre-pct');
-    function tick(){
-      if(_preDone){ _preRAF=null; return; }
-      const gap=_preTarget-_preProgress;
-      if(gap>0.05){
-        _preProgress += gap*0.045;
-        const v=Math.min(_preProgress,100);
-        if(bar) bar.style.width=v+'%';
-        if(pct) pct.textContent=Math.round(v)+'%';
-      }
-      _preRAF=requestAnimationFrame(tick);
-    }
-    _preRAF=requestAnimationFrame(tick);
-  }
-
   function runPreloader(){
-    _preSetMsg(PRE_STEPS[0].msg);
-    _preAdvanceTo(PRE_STEPS[0].target);
-    _preStartRaf();
-
-    // Three.js fires _preMarkThreeReady() when done; 3s fallback
-    const threeTimeout=setTimeout(()=>_preMarkThreeReady(),3000);
-    window._preThreeClearTimeout=()=>clearTimeout(threeTimeout);
-
-    // DOM is already built — signal step 2
-    _preSetMsg(PRE_STEPS[2].msg);
-    _preAdvanceTo(PRE_STEPS[2].target);
-
-    // Step 3: wait for fonts
-    const fontsReady=(document.fonts&&document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-    fontsReady.then(()=>{
-      _preAdvanceTo(PRE_STEPS[3].target, ()=>{
-        _preSetMsg(PRE_STEPS[4].msg);
-        _preAdvanceTo(PRE_STEPS[4].target, ()=>{
-          _preSetMsg(PRE_STEPS[5].msg);
-          _preAdvanceTo(PRE_STEPS[5].target, ()=>{
-            setTimeout(()=>_preComplete(), 420);
-          });
-        });
-      });
-    });
-  }
-
-  function _preMarkThreeReady(){
-    if(window._preThreeClearTimeout) window._preThreeClearTimeout();
-    _preSetMsg(PRE_STEPS[1].msg);
-    _preAdvanceTo(PRE_STEPS[1].target);
-  }
-
-  function _preComplete(){
-    if(_preDone) return;
-    _preDone=true;
-    _preTarget=100;
-    const bar=$('pre-bar'), pct=$('pre-pct');
-    if(bar) bar.style.width='100%';
-    if(pct) pct.textContent='100%';
-    _preSetMsg(PRE_STEPS[6].msg);
-    setTimeout(finishLoading,700);
+    const msgs=['Creating something special...','Gathering the memories...','Lighting the candles...','Almost ready...'];
+    const bar=$('pre-bar'), pct=$('pre-pct'), sub=$('pre-sub');
+    let prog=0, mi=0;
+    const mi2=setInterval(()=>{
+      mi=(mi+1)%msgs.length;
+      sub.style.opacity=0;
+      setTimeout(()=>{ sub.textContent=msgs[mi]; sub.style.opacity=1; },300);
+    },1500);
+    const li=setInterval(()=>{
+      prog+=Math.random()*14+4;
+      if(prog>=100){ prog=100; clearInterval(li); clearInterval(mi2); setTimeout(finishLoading,600); }
+      bar.style.width=prog+'%';
+      pct.textContent=Math.round(prog)+'%';
+    },180);
   }
 
   /* ============================================================
@@ -556,10 +472,9 @@
 
   function hidePreloader(){
     const pre=$('preloader');
-    pre.style.transition='opacity 1s cubic-bezier(0.4,0,0.2,1), transform 1s cubic-bezier(0.4,0,0.2,1)';
+    pre.style.transition='opacity 1.2s ease';
     pre.style.opacity=0;
-    pre.style.transform='scale(1.04)';
-    setTimeout(()=>{ pre.style.display='none'; showAudioModal(); },1050);
+    setTimeout(()=>{ pre.style.display='none'; showAudioModal(); },1200);
   }
 
   /* ============================================================
@@ -572,39 +487,28 @@
   }
 
   /* ============================================================
-     AUDIO SYSTEM — 3-tier fallback
-     Tier 1: YouTube IFrame API (best quality)
-     Tier 2: Web Audio API birthday melody (if YT blocked / postMessage error)
-     Tier 3: Silent (if both fail)
+     YOUTUBE IFRAME MUSIC PLAYER
+     Uses a special song as background
      ============================================================ */
   let ytPlayer = null;
   let ytReady = false;
   let ytMuted = false;
-  let ytFailed = false;
-  let webAudioCtx = null;
-  let webAudioMuted = false;
-  let webAudioNodes = [];   // keep refs to stop/resume
-  let webAudioRunning = false;
-  const AUDIO_VOLUME = 0.28;  // 0–1
 
-  // ── Tier 1: YouTube ──────────────────────────────────────────
+  // YouTube IFrame API callback
   window.onYouTubeIframeAPIReady = function() {
     ytReady = true;
-    if(audioEnabled && !ytFailed) createYTPlayer();
+    if(audioEnabled) createYTPlayer();
   };
 
   function loadYouTubeAPI(){
-    if(window.YT && window.YT.Player){ ytReady=true; return; }
+    if(window.YT) { ytReady=true; return; }
     const tag=document.createElement('script');
     tag.src='https://www.youtube.com/iframe_api';
-    // If the script itself errors (CSP / network), fall back
-    tag.onerror = () => { ytFailed=true; startWebAudio(); };
     document.head.appendChild(tag);
-    // Hard timeout — if YT API doesn't call onYouTubeIframeAPIReady in 8s, fall back
-    setTimeout(()=>{ if(!ytReady){ ytFailed=true; startWebAudio(); } }, 8000);
   }
 
   function createYTPlayer(){
+    // Hidden YouTube iframe container
     let container = $('yt-music-container');
     if(!container){
       container = document.createElement('div');
@@ -615,177 +519,35 @@
       div.id = 'yt-player';
       container.appendChild(div);
     }
-    // Suppress the postMessage cross-origin console error by wrapping in try/catch
-    // and listening for YT's own error event
-    try {
-      ytPlayer = new window.YT.Player('yt-player', {
-        videoId: '5rfv-TLV-U8',
-        playerVars: {
-          autoplay: 1, loop: 1, playlist: 'Umqb9KENgmk',
-          controls: 0, disablekb: 1, fs: 0,
-          modestbranding: 1, rel: 0, iv_load_policy: 3, start: 10,
-          origin: window.location.origin   // ← fixes the postMessage origin mismatch
+    ytPlayer = new window.YT.Player('yt-player', {
+      // Special birthday song
+      videoId: '5rfv-TLV-U8',
+      playerVars: {
+        autoplay: 1,
+        loop: 1,
+        playlist: 'Umqb9KENgmk',
+        controls: 0,
+        disablekb: 1,
+        fs: 0,
+        modestbranding: 1,
+        rel: 0,
+        iv_load_policy: 3,
+        start: 10
+      },
+      events: {
+        onReady: function(e){
+          e.target.setVolume(30);
+          e.target.playVideo();
         },
-        events: {
-          onReady: function(e){
-            e.target.setVolume(30);
+        onStateChange: function(e){
+          if(e.data === window.YT.PlayerState.ENDED){
             e.target.playVideo();
-          },
-          onStateChange: function(e){
-            if(e.data === window.YT.PlayerState.ENDED) e.target.playVideo();
-          },
-          onError: function(e){
-            // YT error codes 2,5,100,101,150 = unplayable/blocked
-            ytFailed = true;
-            if(ytPlayer){ try{ ytPlayer.destroy(); }catch(_){} ytPlayer=null; }
-            if(audioEnabled && !webAudioRunning) startWebAudio();
           }
         }
-      });
-      // Extra safety: if the player iframe fires a postMessage error the YT API
-      // sometimes silently fails — detect via a 6s play-state check
-      setTimeout(()=>{
-        if(!ytFailed && ytPlayer){
-          try{
-            const state = ytPlayer.getPlayerState();
-            // -1 = unstarted, 3 = buffering are fine; anything else stalled = fallback
-            if(state === window.YT.PlayerState.CUED || state === 0){ throw new Error('stalled'); }
-          } catch(_){
-            ytFailed=true;
-            try{ ytPlayer.destroy(); }catch(_2){}
-            ytPlayer=null;
-            if(audioEnabled && !webAudioRunning) startWebAudio();
-          }
-        }
-      }, 6000);
-    } catch(err){
-      ytFailed=true;
-      if(audioEnabled && !webAudioRunning) startWebAudio();
-    }
-  }
-
-  // ── Tier 2: Web Audio API — gentle birthday melody ───────────
-  // A simple looping "Happy Birthday" chord progression + melody
-  // using pure Web Audio oscillators — no external files needed.
-  function startWebAudio(){
-    if(webAudioRunning || webAudioMuted) return;
-    try {
-      webAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    } catch(_){ return; }   // browser doesn't support it
-    webAudioRunning = true;
-    showToast('♪ Playing birthday melody...');
-    scheduleBirthdayMusic();
-  }
-
-  function scheduleBirthdayMusic(){
-    if(!webAudioCtx || webAudioMuted) return;
-    const ctx = webAudioCtx;
-    const master = ctx.createGain();
-    master.gain.setValueAtTime(AUDIO_VOLUME * 0.6, ctx.currentTime);
-    master.connect(ctx.destination);
-    webAudioNodes.push(master);
-
-    // Happy Birthday melody — note frequencies & durations (beat = 0.42s)
-    const B = 0.42;  // one beat in seconds
-    // Notes: C4=261.63, D4=293.66, E4=329.63, F4=349.23, G4=392,
-    //        A4=440, Bb4=466.16, C5=523.25, D5=587.33, E5=659.25, F5=698.46
-    const melody = [
-      // "Happy Birthday to you" ×2, "Happy Birthday dear [name]", "Happy Birthday to you"
-      [261.63,0.75],[261.63,0.25],[293.66,1],[261.63,1],[349.23,1],[329.63,2],
-      [261.63,0.75],[261.63,0.25],[293.66,1],[261.63,1],[392,1],[349.23,2],
-      [261.63,0.75],[261.63,0.25],[523.25,1],[440,1],[349.23,1],[329.63,1],[293.66,2],
-      [466.16,0.75],[466.16,0.25],[440,1],[349.23,1],[392,1],[349.23,3]
-    ];
-
-    // Warm chord pads underneath (Cmaj → Fmaj → G7 → Cmaj)
-    const chords = [
-      [[261.63,329.63,392],  4*B],   // Cmaj
-      [[349.23,440,523.25],  4*B],   // Fmaj
-      [[392,493.88,587.33],  4*B],   // Gmaj
-      [[261.63,329.63,392],  4*B],   // Cmaj
-      [[349.23,440,523.25],  4*B],
-      [[392,493.88,587.33],  4*B],
-      [[523.25,659.25,783.99],4*B],
-      [[261.63,329.63,392],  4*B]
-    ];
-
-    function playLoop(startTime){
-      // Chord pad
-      let ct = startTime;
-      chords.forEach(([freqs, dur])=>{
-        freqs.forEach(f=>{
-          const osc = ctx.createOscillator();
-          const g   = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(f, ct);
-          g.gain.setValueAtTime(0, ct);
-          g.gain.linearRampToValueAtTime(0.12, ct+0.08);
-          g.gain.linearRampToValueAtTime(0.09, ct+dur-0.1);
-          g.gain.linearRampToValueAtTime(0, ct+dur);
-          osc.connect(g); g.connect(master);
-          osc.start(ct); osc.stop(ct+dur+0.05);
-          webAudioNodes.push(osc,g);
-        });
-        ct += dur;
-      });
-
-      // Melody — bell-like tone
-      ct = startTime + B*0.5;  // slight offset so melody floats above chords
-      let totalDur = 0;
-      melody.forEach(([freq,beats])=>{
-        const dur = beats*B;
-        const osc = ctx.createOscillator();
-        const g   = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, ct);
-        g.gain.setValueAtTime(0, ct);
-        g.gain.linearRampToValueAtTime(0.32, ct+0.04);
-        g.gain.linearRampToValueAtTime(0.18, ct+dur*0.6);
-        g.gain.linearRampToValueAtTime(0, ct+dur-0.02);
-        osc.connect(g); g.connect(master);
-        osc.start(ct); osc.stop(ct+dur+0.05);
-        webAudioNodes.push(osc,g);
-        ct += dur;
-        totalDur += dur;
-      });
-
-      // Schedule next loop (add 2-beat pause between repeats)
-      const loopDur = Math.max(chords.reduce((s,[,d])=>s+d,0), totalDur) + B*2;
-      if(webAudioRunning && !webAudioMuted){
-        setTimeout(()=>{ if(webAudioRunning && !webAudioMuted) playLoop(ctx.currentTime); },
-          (loopDur)*1000 - 200);  // re-schedule 200ms early to avoid gap
       }
-    }
-
-    playLoop(ctx.currentTime + 0.1);
+    });
   }
 
-  function stopWebAudio(){
-    webAudioRunning = false;
-    if(webAudioCtx){
-      try{ webAudioCtx.suspend(); }catch(_){}
-    }
-  }
-
-  function resumeWebAudio(){
-    if(!webAudioCtx) return;
-    webAudioMuted = false;
-    webAudioRunning = true;
-    webAudioCtx.resume().then(()=>{ scheduleBirthdayMusic(); });
-  }
-
-  // ── Toast helper ─────────────────────────────────────────────
-  function showToast(msg){
-    setTimeout(()=>{
-      const toast=document.createElement('div');
-      toast.style.cssText='position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:rgba(10,14,26,0.9);border:1px solid rgba(212,168,85,0.25);padding:10px 20px;font-family:"Cormorant Garamond",serif;font-size:0.8rem;color:rgba(212,168,85,0.8);letter-spacing:2px;z-index:9000;backdrop-filter:blur(10px);transition:opacity 1s ease;white-space:nowrap;';
-      toast.textContent=msg;
-      document.body.appendChild(toast);
-      setTimeout(()=>{ toast.style.opacity=0; setTimeout(()=>toast.remove(),1000); },4000);
-    },2000);
-  }
-
-  // ── Experience start & toggle ─────────────────────────────────
   function startExperience(withAudio){
     const m=$('audio-modal');
     m.style.opacity=0;
@@ -793,8 +555,15 @@
     if(withAudio){
       audioEnabled=true;
       loadYouTubeAPI();
-      if(ytReady && !ytFailed) createYTPlayer();
-      showToast('♪ Playing your special song...');
+      if(ytReady) createYTPlayer();
+      // Show song info toast
+      setTimeout(()=>{
+        const toast=document.createElement('div');
+        toast.style.cssText='position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:rgba(10,14,26,0.9);border:1px solid rgba(212,168,85,0.25);padding:10px 20px;font-family:"Cormorant Garamond",serif;font-size:0.8rem;color:rgba(212,168,85,0.8);letter-spacing:2px;z-index:9000;backdrop-filter:blur(10px);transition:opacity 1s ease;white-space:nowrap;';
+        toast.textContent='♪ Playing your special song...';
+        document.body.appendChild(toast);
+        setTimeout(()=>{ toast.style.opacity=0; setTimeout(()=>toast.remove(),1000); },4000);
+      },2000);
     }
     $('audio-btn').classList.add('visible');
     $('progress-dots').classList.add('visible');
@@ -803,31 +572,18 @@
 
   function toggleAudio(){
     const btn=$('audio-btn');
-    // Toggle YouTube
-    if(ytPlayer && ytReady && !ytFailed){
-      try {
-        if(ytMuted){
-          ytPlayer.unMute(); ytPlayer.setVolume(30);
-          ytMuted=false; btn.textContent='🎵'; btn.title='Mute music';
-        } else {
-          ytPlayer.mute();
-          ytMuted=true; btn.textContent='🔇'; btn.title='Unmute music';
-        }
-      } catch(_){}
-      return;
-    }
-    // Toggle Web Audio fallback
-    if(webAudioCtx || webAudioRunning){
-      if(webAudioRunning){
-        webAudioMuted=true; webAudioRunning=false;
-        stopWebAudio();
-        btn.textContent='🔇'; btn.title='Unmute music';
+    if(!ytPlayer || !ytReady){ return; }
+    try {
+      if(ytMuted){
+        ytPlayer.unMute(); ytPlayer.setVolume(30);
+        ytMuted=false; btn.textContent='🎵';
+        btn.title='Mute music';
       } else {
-        webAudioMuted=false;
-        resumeWebAudio();
-        btn.textContent='🎵'; btn.title='Mute music';
+        ytPlayer.mute();
+        ytMuted=true; btn.textContent='🔇';
+        btn.title='Unmute music';
       }
-    }
+    } catch(e){}
   }
 
   /* ============================================================
@@ -1222,12 +978,6 @@
      ============================================================ */
   function init(){
     buildDOM();
-    // Signal: scenes in DOM — advance preloader to step 4
-    requestAnimationFrame(()=>{
-      if(typeof _preAdvanceTo==='function'){
-        _preAdvanceTo(72);
-      }
-    });
     initCursor();
     initThree();
     initCelebCanvas();
