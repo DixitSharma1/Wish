@@ -1,0 +1,1226 @@
+/* ============================================================
+   BIRTHDAY EXPERIENCE — PREMIUM CSS
+   ============================================================ */
+
+:root {
+  --navy:       #0a0e1a;
+  --indigo:     #131829;
+  --violet:     #1e1535;
+  --lavender:   #c8b4e8;
+  --dusty-pink: #e8b4c8;
+  --peach:      #f0c8a0;
+  --gold:       #d4a855;
+  --gold-soft:  #e8c87a;
+  --gold-dim:   rgba(212,168,85,0.35);
+  --cream:      #f5ede0;
+  --cyan:       #7dd4f0;
+  --text-main:  rgba(245,237,224,0.92);
+  --text-muted: rgba(245,237,224,0.45);
+  --text-dim:   rgba(245,237,224,0.25);
+  --glow-gold:  0 0 30px rgba(212,168,85,0.4), 0 0 80px rgba(212,168,85,0.15);
+  --glow-pink:  0 0 30px rgba(232,180,200,0.4);
+  --glow-violet:0 0 40px rgba(200,180,232,0.3);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; overflow-x: hidden; }
+
+body {
+  background: var(--navy);
+  color: var(--text-main);
+  font-family: 'Lato', sans-serif;
+  overflow-x: hidden;
+  cursor: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   CUSTOM CURSOR
+   ============================================================ */
+#cursor-dot {
+  position: fixed;
+  width: 8px; height: 8px;
+  background: var(--gold);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99999;
+  top: 0; left: 0;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s, height 0.2s, opacity 0.2s;
+  box-shadow: 0 0 10px rgba(212,168,85,0.8);
+  opacity: 0;
+  will-change: transform, left, top;
+}
+#cursor-ring {
+  position: fixed;
+  width: 32px; height: 32px;
+  border: 1px solid rgba(212,168,85,0.5);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99998;
+  top: 0; left: 0;
+  transform: translate(-50%, -50%);
+  transition: width 0.12s ease, height 0.12s ease, border-color 0.12s ease;
+  will-change: left, top;
+}
+#cursor-glow {
+  position: fixed;
+  width: 120px; height: 120px;
+  background: radial-gradient(circle, rgba(212,168,85,0.08), transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99997;
+  top: 0; left: 0;
+  transform: translate(-50%, -50%);
+  transition: all 0.25s ease;
+  filter: blur(8px);
+  will-change: left, top;
+}
+body.cursor-ready #cursor-dot { opacity: 1; }
+@media (max-width: 768px) {
+  #cursor-dot, #cursor-ring, #cursor-glow { display: none; }
+  body { cursor: auto; }
+}
+
+/* ============================================================
+   CANVAS BACKGROUND
+   ============================================================ */
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ============================================================
+   PRELOADER
+   ============================================================ */
+#preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: var(--navy);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.preloader-symbol {
+  font-size: 3rem;
+  margin-bottom: 32px;
+  animation: symbolFloat 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(212,168,85,0.6));
+}
+@keyframes symbolFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(5deg); }
+}
+.preloader-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.2rem;
+  font-weight: 300;
+  color: var(--gold);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.preloader-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  letter-spacing: 2px;
+  height: 18px;
+  transition: opacity 0.4s;
+}
+.preloader-bar-track {
+  width: 240px;
+  height: 1px;
+  background: rgba(212,168,85,0.12);
+  margin: 28px auto 8px;
+  overflow: hidden;
+}
+.preloader-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, transparent, var(--gold), rgba(212,168,85,0.5));
+  box-shadow: 0 0 10px var(--gold);
+  transition: width 0.3s ease;
+}
+.preloader-pct {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.85rem;
+  color: var(--gold-dim);
+  letter-spacing: 3px;
+}
+
+/* ============================================================
+   AUDIO CONTROL
+   ============================================================ */
+#audio-btn {
+  position: fixed;
+  top: 22px; right: 22px;
+  z-index: 9990;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: rgba(10,14,26,0.7);
+  border: 1px solid var(--gold-dim);
+  color: var(--gold);
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+#audio-btn:hover {
+  transform: scale(1.1);
+  box-shadow: var(--glow-gold);
+}
+#audio-btn.visible { opacity: 1; }
+
+/* Progress dots */
+#progress-dots {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+#progress-dots.visible { opacity: 1; }
+.p-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  border: 1px solid rgba(212,168,85,0.3);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.p-dot.active {
+  background: var(--gold);
+  box-shadow: 0 0 8px var(--gold);
+  border-color: var(--gold);
+}
+@media (max-width: 768px) { #progress-dots { display: none; } }
+
+/* ============================================================
+   CINEMATIC OVERLAY / VIGNETTE
+   ============================================================ */
+#vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 8000;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.6) 100%);
+}
+
+/* ============================================================
+   SCENE SYSTEM
+   ============================================================ */
+.scene {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s;
+}
+.scene.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+.t-display {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2rem, 6vw, 4.5rem);
+  font-weight: 300;
+  line-height: 1.2;
+  letter-spacing: 2px;
+  color: var(--cream);
+}
+.t-display-gold {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.5rem, 8vw, 6rem);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: 3px;
+  color: var(--gold);
+  text-shadow: var(--glow-gold);
+}
+.t-serif {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+  font-weight: 300;
+  line-height: 1.8;
+  letter-spacing: 1px;
+  color: var(--text-main);
+}
+.t-body {
+  font-family: 'Lato', sans-serif;
+  font-size: clamp(0.85rem, 1.8vw, 1rem);
+  font-weight: 300;
+  line-height: 1.9;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+.t-caption {
+  font-family: 'Lato', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 300;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.t-gold { color: var(--gold); }
+.t-italic { font-style: italic; }
+.divider {
+  width: 50px; height: 1px;
+  background: var(--gold-dim);
+  margin: 20px auto;
+}
+
+/* ============================================================
+   SCENE 01 — ARRIVAL
+   ============================================================ */
+#scene-arrival .arrival-content {
+  max-width: 600px;
+}
+.arrival-line {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* ============================================================
+   SCENE 02 — GIFT BOX
+   ============================================================ */
+#scene-gift {
+  perspective: 1000px;
+}
+.gift-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  margin: 0 auto 40px;
+}
+.gift-box {
+  width: 160px; height: 140px;
+  background: linear-gradient(135deg, #1e1535, #2a1f4a);
+  border: 1px solid rgba(212,168,85,0.3);
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 4px;
+  box-shadow: 0 0 30px rgba(212,168,85,0.1), inset 0 0 30px rgba(0,0,0,0.3);
+  overflow: hidden;
+  transition: all 0.4s ease;
+}
+.gift-box::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 2px; height: 100%;
+  background: linear-gradient(to bottom, var(--gold), rgba(212,168,85,0.3));
+}
+.gift-box::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 0;
+  transform: translateY(-50%);
+  width: 100%; height: 2px;
+  background: linear-gradient(to right, rgba(212,168,85,0.3), var(--gold), rgba(212,168,85,0.3));
+}
+.gift-lid {
+  width: 170px; height: 45px;
+  background: linear-gradient(135deg, #2a1f4a, #3a2a5a);
+  border: 1px solid rgba(212,168,85,0.4);
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 3px;
+  box-shadow: 0 0 20px rgba(212,168,85,0.15);
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: center top;
+}
+.gift-bow {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 40px;
+  z-index: 2;
+}
+.gift-bow::before, .gift-bow::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 26px; height: 26px;
+  border-radius: 50% 0;
+  background: var(--gold);
+  opacity: 0.8;
+}
+.gift-bow::before {
+  right: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  transform-origin: right bottom;
+}
+.gift-bow::after {
+  left: 50%;
+  transform: translateY(-50%) rotate(-45deg);
+  transform-origin: left bottom;
+}
+.gift-glow {
+  position: absolute;
+  inset: -30px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212,168,85,0.15), transparent 70%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.gift-container:hover .gift-glow { opacity: 1; }
+.gift-container:hover .gift-box { box-shadow: var(--glow-gold); }
+.gift-hint {
+  font-size: 0.75rem;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+  animation: hintPulse 2s ease-in-out infinite;
+}
+@keyframes hintPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* ============================================================
+   SCENE 03 — SOMEONE SPECIAL
+   ============================================================ */
+.floating-orb {
+  width: 180px; height: 180px;
+  margin: 0 auto 40px;
+  position: relative;
+}
+.orb-core {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%,
+    rgba(200,180,232,0.5) 0%,
+    rgba(212,168,85,0.2) 40%,
+    rgba(30,21,53,0.8) 70%
+  );
+  border: 1px solid rgba(212,168,85,0.3);
+  box-shadow:
+    0 0 40px rgba(200,180,232,0.3),
+    0 0 80px rgba(212,168,85,0.1),
+    inset 0 0 40px rgba(0,0,0,0.5);
+  animation: orbFloat 6s ease-in-out infinite;
+}
+@keyframes orbFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(-15px) rotate(3deg); }
+  66% { transform: translateY(-8px) rotate(-3deg); }
+}
+.orb-ring {
+  position: absolute;
+  inset: -15px;
+  border-radius: 50%;
+  border: 1px solid rgba(200,180,232,0.2);
+  animation: ringRotate 8s linear infinite;
+}
+.orb-ring-2 {
+  inset: -28px;
+  border-color: rgba(212,168,85,0.12);
+  animation: ringRotate 14s linear infinite reverse;
+}
+@keyframes ringRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   SCENE 04 — MEMORIES
+   ============================================================ */
+#scene-memories { padding: 20px; }
+.memories-header { margin-bottom: 40px; }
+.memories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  max-width: 960px;
+  width: 100%;
+}
+@media (max-width: 768px) {
+  .memories-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+}
+@media (max-width: 480px) {
+  .memories-grid { grid-template-columns: 1fr; gap: 10px; }
+}
+.memory-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(212,168,85,0.12);
+  padding: 28px 20px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(30px);
+}
+.memory-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg,
+    rgba(212,168,85,0.05) 0%,
+    transparent 60%,
+    rgba(200,180,232,0.03) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.memory-card:hover {
+  border-color: rgba(212,168,85,0.35);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4), var(--glow-gold);
+}
+.memory-card:hover::before { opacity: 1; }
+.memory-emoji {
+  font-size: 2rem;
+  margin-bottom: 14px;
+  display: block;
+  filter: drop-shadow(0 0 10px rgba(212,168,85,0.4));
+}
+.memory-date {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.95rem;
+  color: var(--gold);
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.memory-caption {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+.memory-detail {
+  font-size: 0.76rem;
+  color: var(--text-dim);
+  margin-top: 8px;
+  font-style: italic;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: all 0.3s ease;
+}
+.memory-card:hover .memory-detail {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================================
+   SCENE 05 — LITTLE THINGS
+   ============================================================ */
+.little-things-msg {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.6rem, 4vw, 3rem);
+  font-weight: 300;
+  color: var(--text-main);
+  line-height: 1.4;
+  letter-spacing: 1px;
+  opacity: 0;
+  transform: translateY(20px);
+  position: absolute;
+  width: 100%;
+  padding: 0 40px;
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
+}
+.little-things-msg.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+.little-things-msg.exit {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+#scene-little .progress-bar {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+}
+.msg-dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: rgba(212,168,85,0.2);
+  transition: all 0.3s;
+}
+.msg-dot.done { background: var(--gold); }
+.msg-next-btn {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: transparent;
+  border: 1px solid var(--gold-dim);
+  color: var(--gold);
+  padding: 10px 28px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.85rem;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.msg-next-btn:hover {
+  background: rgba(212,168,85,0.08);
+  box-shadow: var(--glow-gold);
+}
+
+/* ============================================================
+   SCENE 06 — LETTER
+   ============================================================ */
+#scene-letter { overflow-y: auto; padding: 60px 20px; }
+.letter-envelope-wrapper {
+  width: min(600px, 90%);
+  margin: 0 auto;
+}
+.envelope-outer {
+  cursor: pointer;
+  padding: 60px 40px;
+  background: linear-gradient(135deg, #1a1228, #231540);
+  border: 1px solid rgba(212,168,85,0.25);
+  position: relative;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 40px rgba(0,0,0,0.5);
+}
+.envelope-outer:hover {
+  border-color: rgba(212,168,85,0.5);
+  box-shadow: var(--glow-gold), 0 0 60px rgba(0,0,0,0.6);
+}
+.envelope-seal {
+  width: 70px; height: 70px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  background: rgba(212,168,85,0.05);
+  font-size: 1.8rem;
+  box-shadow: var(--glow-gold);
+  animation: sealPulse 3s ease-in-out infinite;
+}
+@keyframes sealPulse {
+  0%, 100% { box-shadow: var(--glow-gold); }
+  50% { box-shadow: 0 0 50px rgba(212,168,85,0.6), 0 0 100px rgba(212,168,85,0.2); }
+}
+.envelope-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.4rem;
+  color: var(--gold);
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  font-style: italic;
+}
+.envelope-hint {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+}
+/* Letter content (revealed) */
+.letter-content {
+  display: none;
+  background: rgba(245,237,224,0.03);
+  border: 1px solid rgba(212,168,85,0.15);
+  padding: 50px 44px;
+  text-align: left;
+  position: relative;
+}
+.letter-content.open { display: block; }
+.letter-content::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50px;
+  right: 50px;
+  height: 1px;
+  background: rgba(212,168,85,0.15);
+}
+.letter-date {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  margin-bottom: 28px;
+  font-style: italic;
+}
+.letter-opening {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem;
+  font-weight: 300;
+  color: var(--gold);
+  font-style: italic;
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+.letter-body {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  color: var(--text-main);
+  line-height: 2;
+  white-space: pre-line;
+  margin-bottom: 30px;
+}
+.letter-closing {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  color: var(--gold);
+  font-style: italic;
+  margin-bottom: 20px;
+}
+.letter-sig {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+.letter-nav-btn {
+  margin-top: 40px;
+  background: transparent;
+  border: 1px solid var(--gold-dim);
+  color: var(--gold);
+  padding: 12px 36px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.9rem;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+.letter-nav-btn:hover {
+  background: rgba(212,168,85,0.08);
+}
+
+/* ============================================================
+   SCENE 07 — CAKE / WISH
+   ============================================================ */
+.cake-wrapper {
+  position: relative;
+  width: 200px;
+  height: 220px;
+  margin: 0 auto 40px;
+  cursor: pointer;
+}
+.cake-body {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 120px;
+  background: linear-gradient(135deg, #2d1f4a, #3d2a5a);
+  border-radius: 8px;
+  border: 1px solid rgba(200,180,232,0.3);
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+.cake-frosting {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 22px;
+  background: linear-gradient(to right, var(--lavender), var(--dusty-pink), var(--lavender));
+  border-radius: 0 0 50% 50% / 0 0 12px 12px;
+  opacity: 0.9;
+}
+.cake-drips {
+  position: absolute;
+  top: 16px;
+  left: 0; right: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 0 10px;
+}
+.drip {
+  width: 8px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(to bottom, var(--lavender), rgba(200,180,232,0.3));
+}
+.cake-layer {
+  position: absolute;
+  width: calc(100% + 16px);
+  height: 28px;
+  background: linear-gradient(135deg, #231840, #2e1f50);
+  left: -8px;
+  border: 1px solid rgba(212,168,85,0.2);
+}
+.cake-layer-1 { top: 38px; }
+.cake-layer-2 { top: 62px; }
+.cake-plate {
+  position: absolute;
+  bottom: -10px;
+  left: -15px; right: -15px;
+  height: 16px;
+  background: linear-gradient(to bottom, rgba(212,168,85,0.3), rgba(212,168,85,0.1));
+  border-radius: 50%;
+}
+/* Candle */
+.candle-group {
+  position: absolute;
+  bottom: 122px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.candle-stick {
+  width: 14px; height: 50px;
+  background: linear-gradient(to right, var(--dusty-pink), var(--lavender), var(--dusty-pink));
+  border-radius: 3px 3px 0 0;
+  position: relative;
+}
+.candle-wick {
+  width: 2px; height: 10px;
+  background: #333;
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.candle-flame {
+  width: 18px; height: 28px;
+  position: absolute;
+  top: -36px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.flame-inner {
+  width: 10px; height: 18px;
+  background: radial-gradient(ellipse, #fff8e0, #ffd060 40%, transparent 80%);
+  border-radius: 50% 50% 30% 30%;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: flameFlicker 0.3s ease-in-out infinite alternate;
+  box-shadow: 0 0 20px rgba(255,200,80,0.8), 0 0 40px rgba(255,150,50,0.4);
+}
+.flame-outer {
+  width: 18px; height: 28px;
+  background: radial-gradient(ellipse, rgba(255,180,50,0.5), transparent 70%);
+  border-radius: 50% 50% 30% 30%;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: flameFlicker 0.4s ease-in-out infinite alternate-reverse;
+  filter: blur(2px);
+}
+@keyframes flameFlicker {
+  from { transform: translateX(-50%) scaleX(1) scaleY(1); }
+  to { transform: translateX(-50%) scaleX(0.85) scaleY(1.08); }
+}
+.candle-flame.extinguished .flame-inner,
+.candle-flame.extinguished .flame-outer {
+  animation: none;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+.cake-glow {
+  position: absolute;
+  inset: -40px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212,168,85,0.15), transparent 70%);
+  pointer-events: none;
+  animation: cakeGlow 3s ease-in-out infinite;
+}
+@keyframes cakeGlow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+.wish-hint {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  letter-spacing: 3px;
+  margin-top: 20px;
+  animation: hintPulse 2s ease-in-out infinite;
+}
+
+/* ============================================================
+   SCENE 08 — CELEBRATION
+   ============================================================ */
+#scene-celebration .celebration-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(3rem, 10vw, 7rem);
+  font-weight: 400;
+  letter-spacing: 4px;
+  line-height: 1.1;
+  background: linear-gradient(135deg, var(--gold-soft), var(--dusty-pink), var(--lavender), var(--gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 30px rgba(212,168,85,0.3));
+  opacity: 0;
+}
+.celebration-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-style: italic;
+  color: var(--gold);
+  letter-spacing: 3px;
+  opacity: 0;
+  margin-top: 12px;
+}
+.celebration-emoji {
+  font-size: 3rem;
+  margin-top: 24px;
+  opacity: 0;
+  filter: drop-shadow(0 0 20px rgba(212,168,85,0.5));
+}
+
+/* ============================================================
+   SCENE 09 — FINAL
+   ============================================================ */
+.final-line {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+  font-weight: 300;
+  line-height: 1.9;
+  color: var(--text-muted);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: all 0.6s ease;
+}
+.final-line.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.final-line.t-gold { color: var(--gold); }
+.final-closing {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  color: var(--gold);
+  letter-spacing: 3px;
+  font-style: italic;
+  margin-top: 30px;
+  opacity: 0;
+  filter: drop-shadow(0 0 20px rgba(212,168,85,0.4));
+}
+.final-sig {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  margin-top: 16px;
+  opacity: 0;
+}
+.final-ps {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  margin-top: 8px;
+  opacity: 0;
+  font-style: italic;
+}
+
+/* ============================================================
+   NAVIGATION BUTTONS
+   ============================================================ */
+.nav-btn {
+  background: transparent;
+  border: 1px solid var(--gold-dim);
+  color: var(--gold);
+  padding: 14px 40px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.9rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.nav-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: rgba(212,168,85,0.08);
+  transition: left 0.3s ease;
+}
+.nav-btn:hover::before { left: 0; }
+.nav-btn:hover {
+  border-color: rgba(212,168,85,0.6);
+  box-shadow: var(--glow-gold);
+  transform: translateY(-2px);
+}
+
+/* ============================================================
+   TRANSITION OVERLAY
+   ============================================================ */
+#transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50000;
+  background: var(--navy);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+#transition-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ============================================================
+   CELEBRATION PARTICLES CANVAS
+   ============================================================ */
+#celebration-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+#celebration-canvas.active { opacity: 1; }
+
+/* ============================================================
+   SCROLLABLE SCENES OVERRIDE
+   ============================================================ */
+#scene-memories, #scene-letter {
+  overflow-y: auto;
+  align-items: flex-start;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
+}
+#scene-memories::-webkit-scrollbar { width: 3px; }
+#scene-memories::-webkit-scrollbar-thumb { background: var(--gold-dim); }
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================
+   ENHANCED STYLES FOR ANU'S BIRTHDAY — v2
+   ============================================================ */
+
+/* Warm rose-gold accent additions */
+:root {
+  --rose: #e8a0b0;
+  --rose-soft: rgba(232, 160, 176, 0.15);
+}
+
+/* Subtle rose tint on headings for extra warmth */
+.t-display {
+  background: linear-gradient(135deg, #d4a855 0%, #e8b4c0 50%, #d4a855 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% auto;
+  animation: shimmerText 5s linear infinite;
+}
+
+@keyframes shimmerText {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Heartbeat glow on candle scene */
+.cake-glow {
+  animation: cakeGlow 2s ease-in-out infinite !important;
+}
+@keyframes cakeGlow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(1.12); }
+}
+
+/* Memory card hover — rose border */
+.memory-card:hover {
+  border-color: rgba(232, 160, 176, 0.35) !important;
+  box-shadow: 0 8px 40px rgba(232, 160, 176, 0.12) !important;
+}
+
+/* Audio button pulse when playing */
+#audio-btn.visible {
+  animation: audioPulse 3s ease-in-out infinite;
+}
+@keyframes audioPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 168, 85, 0.0); }
+  50% { box-shadow: 0 0 0 6px rgba(212, 168, 85, 0.15); }
+}
+
+/* Final signature — Krish in rose gold */
+.final-sig {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.2rem;
+  font-style: italic;
+  color: var(--rose) !important;
+  letter-spacing: 2px;
+}
+
+/* Letter signature — Krish */
+.letter-sig {
+  color: var(--rose) !important;
+}
+
+/* Celebration name — warmer glow */
+.celebration-name {
+  text-shadow: 0 0 40px rgba(232, 160, 176, 0.5), 0 0 80px rgba(212, 168, 85, 0.3);
+}
+
+/* Floating hearts in arrival scene */
+.heart-float {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1;
+  font-size: 1.2rem;
+  opacity: 0;
+  animation: floatHeart 8s ease-in infinite;
+}
+@keyframes floatHeart {
+  0% { opacity: 0; transform: translateY(0) scale(0.5); }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.3; }
+  100% { opacity: 0; transform: translateY(-80vh) scale(1.2) rotate(20deg); }
+}
+
+/* ============================================================
+   DARK MODE & DATA-SAVING CONTRAST FIXES
+   When a user has "dark mode" + "data saving" enabled on Android
+   or iOS, browsers may strip backgrounds and reduce opacity
+   aggressively. These overrides restore legible contrast.
+   ============================================================ */
+
+/* Force sufficient contrast for all text in dark/forced contexts */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-main:  rgba(255, 248, 235, 0.97);
+    --text-muted: rgba(255, 248, 235, 0.72);
+    --text-dim:   rgba(255, 248, 235, 0.52);
+    --gold:       #e8bb5a;
+    --gold-soft:  #f0d080;
+    --gold-dim:   rgba(232,187,90,0.55);
+    --cream:      #fff8eb;
+  }
+
+  /* Ensure body background is always the deep navy — never transparent */
+  body { background: #0a0e1a !important; }
+
+  /* Boost muted text so it's readable without a bright screen */
+  .t-muted, .t-body, .t-caption,
+  .memory-detail, .audio-desc,
+  .preloader-sub, .envelope-hint,
+  .letter-body, .letter-opening,
+  .pre-sub, .final-line,
+  .memory-caption {
+    color: rgba(255, 248, 235, 0.82) !important;
+  }
+
+  /* Gold headings stay crisp */
+  .t-display, .t-serif,
+  .audio-title, .celebration-title,
+  .preloader-title, .letter-date,
+  .memory-date, h1, h2, h3 {
+    color: #e8bb5a !important;
+  }
+
+  /* Nav/action buttons — always readable */
+  .nav-btn {
+    background: rgba(232,187,90,0.18) !important;
+    border-color: rgba(232,187,90,0.55) !important;
+    color: #e8bb5a !important;
+  }
+
+  /* Memory cards — stronger border so they don't disappear */
+  .memory-card {
+    border-color: rgba(232,187,90,0.28) !important;
+    background: rgba(19,24,41,0.96) !important;
+  }
+
+  /* Letter & envelope — never transparent */
+  .letter-content, .envelope-outer {
+    background: rgba(10,14,26,0.98) !important;
+    border-color: rgba(232,187,90,0.35) !important;
+  }
+
+  /* Audio modal box */
+  .audio-box {
+    background: rgba(10,14,26,0.98) !important;
+  }
+
+  /* Progress dots visibility */
+  .p-dot {
+    border-color: rgba(232,187,90,0.5) !important;
+  }
+  .p-dot.active {
+    background: #e8bb5a !important;
+  }
+}
+
+/* High-contrast / forced-colors fallback (some Android data-saver modes) */
+@media (forced-colors: active) {
+  body { background: Canvas; color: CanvasText; }
+  .t-display, h1, h2, h3 { color: Highlight; }
+  .nav-btn {
+    border: 2px solid ButtonText !important;
+    color: ButtonText !important;
+    background: ButtonFace !important;
+  }
+  .memory-card {
+    border: 1px solid ButtonText !important;
+  }
+}
+
+/* ============================================================
+   MOBILE DARK + LOW-BRIGHTNESS BOOST
+   Many phones in "battery saver" drop screen brightness &
+   reduce text opacity via the system compositor. We compensate
+   by making critical text slightly bolder and fully opaque.
+   ============================================================ */
+@media (max-width: 768px) and (prefers-color-scheme: dark) {
+  .t-display {
+    font-weight: 500 !important;
+    color: #f0d080 !important;
+    text-shadow: 0 0 12px rgba(232,187,90,0.35);
+  }
+  .t-body, .t-caption {
+    color: rgba(255,248,235,0.88) !important;
+  }
+  .memory-detail, .memory-caption {
+    color: rgba(255,248,235,0.80) !important;
+  }
+  /* Ensure the gold divider line is visible */
+  .divider {
+    background: rgba(232,187,90,0.45) !important;
+    height: 1px !important;
+  }
+}
