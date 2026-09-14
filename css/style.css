@@ -45,12 +45,9 @@ body {
   border-radius: 50%;
   pointer-events: none;
   z-index: 99999;
-  top: 0; left: 0;
   transform: translate(-50%, -50%);
   transition: width 0.2s, height 0.2s, opacity 0.2s;
   box-shadow: 0 0 10px rgba(212,168,85,0.8);
-  opacity: 0;
-  will-change: transform, left, top;
 }
 #cursor-ring {
   position: fixed;
@@ -59,10 +56,8 @@ body {
   border-radius: 50%;
   pointer-events: none;
   z-index: 99998;
-  top: 0; left: 0;
   transform: translate(-50%, -50%);
-  transition: width 0.12s ease, height 0.12s ease, border-color 0.12s ease;
-  will-change: left, top;
+  transition: all 0.12s ease;
 }
 #cursor-glow {
   position: fixed;
@@ -71,13 +66,11 @@ body {
   border-radius: 50%;
   pointer-events: none;
   z-index: 99997;
-  top: 0; left: 0;
   transform: translate(-50%, -50%);
   transition: all 0.25s ease;
   filter: blur(8px);
-  will-change: left, top;
 }
-body.cursor-ready #cursor-dot { opacity: 1; }
+body:hover #cursor-dot { opacity: 1; }
 @media (max-width: 768px) {
   #cursor-dot, #cursor-ring, #cursor-glow { display: none; }
   body { cursor: auto; }

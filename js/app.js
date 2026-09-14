@@ -297,17 +297,13 @@
   function initCursor(){
     const dot=$('cursor-dot'), ring=$('cursor-ring'), glow=$('cursor-glow');
     if(!dot||isMobile()) return;
-    let cx=0,cy=0,rx=0,ry=0,gx=0,gy=0,started=false;
-    window.addEventListener('mousemove',e=>{
-      cx=e.clientX; cy=e.clientY;
-      dot.style.left=cx+'px'; dot.style.top=cy+'px';
-      if(!started){ started=true; document.body.classList.add('cursor-ready'); rx=cx; ry=cy; gx=cx; gy=cy; }
-    });
+    let cx=0,cy=0,rx=0,ry=0,gx=0,gy=0;
+    window.addEventListener('mousemove',e=>{ cx=e.clientX; cy=e.clientY; dot.style.cssText+=`left:${cx}px;top:${cy}px`; });
     (function animC(){
       rx+=(cx-rx)*.12; ry+=(cy-ry)*.12;
       gx+=(cx-gx)*.06; gy+=(cy-gy)*.06;
-      ring.style.left=rx+'px'; ring.style.top=ry+'px';
-      glow.style.left=gx+'px'; glow.style.top=gy+'px';
+      ring.style.cssText+=`left:${rx}px;top:${ry}px`;
+      glow.style.cssText+=`left:${gx}px;top:${gy}px`;
       requestAnimationFrame(animC);
     })();
     const expand=()=>{ ring.style.width='50px'; ring.style.height='50px'; ring.style.borderColor='rgba(212,168,85,0.8)'; };
