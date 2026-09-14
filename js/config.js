@@ -7,6 +7,11 @@ window.BirthdayConfig = {
   // (local time of whoever opens the link). Format: "YYYY-MM-DDTHH:MM:SS"
   unlockDateTime: "2026-09-14T23:59:00",
 
+  // YouTube Video ID for background music (primary source).
+  // If YouTube fails or is blocked, a birthday melody plays automatically.
+  // To change the song, replace the ID below (the part after ?v= in the YouTube URL).
+  ytVideoId: "5rfv-TLV-U8",
+
   // Person's name (displayed in key moments)
   name: "Anu",
 

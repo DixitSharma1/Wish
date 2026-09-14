@@ -487,12 +487,20 @@
   }
 
   /* ============================================================
-     YOUTUBE IFRAME MUSIC PLAYER
-     Uses a special song as background
+     MUSIC PLAYER
+     Primary: YouTube IFrame API
+     Fallback: Birthday audio (Web Audio API synth melody)
      ============================================================ */
   let ytPlayer = null;
   let ytReady = false;
   let ytMuted = false;
+  let ytFailed = false;
+
+  // Fallback birthday audio via Web Audio API
+  let fallbackAudioCtx = null;
+  let fallbackNodes = [];
+  let fallbackMuted = false;
+  let fallbackPlaying = false;
 
   // YouTube IFrame API callback
   window.onYouTubeIframeAPIReady = function() {
@@ -504,11 +512,14 @@
     if(window.YT) { ytReady=true; return; }
     const tag=document.createElement('script');
     tag.src='https://www.youtube.com/iframe_api';
+    // If script fails to load, start birthday fallback
+    tag.onerror=()=>{ ytFailed=true; if(audioEnabled) startBirthdayFallback(); };
     document.head.appendChild(tag);
+    // Timeout: if YT not ready in 8s, use fallback
+    setTimeout(()=>{ if(!ytReady && audioEnabled && !ytFailed){ ytFailed=true; startBirthdayFallback(); } }, 8000);
   }
 
   function createYTPlayer(){
-    // Hidden YouTube iframe container
     let container = $('yt-music-container');
     if(!container){
       container = document.createElement('div');
@@ -519,33 +530,143 @@
       div.id = 'yt-player';
       container.appendChild(div);
     }
-    ytPlayer = new window.YT.Player('yt-player', {
-      // Special birthday song
-      videoId: '5rfv-TLV-U8',
-      playerVars: {
-        autoplay: 1,
-        loop: 1,
-        playlist: 'Umqb9KENgmk',
-        controls: 0,
-        disablekb: 1,
-        fs: 0,
-        modestbranding: 1,
-        rel: 0,
-        iv_load_policy: 3,
-        start: 10
-      },
-      events: {
-        onReady: function(e){
-          e.target.setVolume(30);
-          e.target.playVideo();
+    try {
+      ytPlayer = new window.YT.Player('yt-player', {
+        videoId: CFG.ytVideoId || 'dQw4w9WgXcQ',
+        playerVars: {
+          autoplay: 1,
+          loop: 1,
+          playlist: CFG.ytVideoId || 'dQw4w9WgXcQ',
+          controls: 0,
+          disablekb: 1,
+          fs: 0,
+          modestbranding: 1,
+          rel: 0,
+          iv_load_policy: 3,
+          start: 0
         },
-        onStateChange: function(e){
-          if(e.data === window.YT.PlayerState.ENDED){
+        events: {
+          onReady: function(e){
+            e.target.setVolume(30);
             e.target.playVideo();
+          },
+          onStateChange: function(e){
+            // -1=unstarted, 0=ended, 1=playing, 2=paused, 3=buffering, 5=cued
+            if(e.data === window.YT.PlayerState.ENDED){
+              e.target.playVideo();
+            }
+            // If video unstarted for too long, fall back
+          },
+          onError: function(){
+            ytFailed = true;
+            if(!fallbackPlaying && audioEnabled) startBirthdayFallback();
           }
         }
-      }
+      });
+      // If player doesn't start playing in 10s, switch to fallback
+      setTimeout(()=>{
+        if(!ytFailed && ytPlayer && audioEnabled){
+          try {
+            const state = ytPlayer.getPlayerState();
+            // Not playing (not 1 = playing)
+            if(state !== 1 && state !== 3){
+              ytFailed = true;
+              startBirthdayFallback();
+            }
+          } catch(e){
+            ytFailed = true;
+            startBirthdayFallback();
+          }
+        }
+      }, 10000);
+    } catch(e){
+      ytFailed = true;
+      if(audioEnabled) startBirthdayFallback();
+    }
+  }
+
+  /* ----------------------------------------------------------
+     BIRTHDAY AUDIO FALLBACK — Web Audio API melody
+     Plays a gentle looping birthday-style chime melody
+     ---------------------------------------------------------- */
+  function startBirthdayFallback(){
+    if(fallbackPlaying) return;
+    fallbackPlaying = true;
+    showToast('🎂 Playing birthday melody...');
+    try {
+      fallbackAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      playBirthdayMelody();
+    } catch(e){ fallbackPlaying=false; }
+  }
+
+  function playBirthdayMelody(){
+    if(!fallbackAudioCtx || fallbackMuted) return;
+    // Happy Birthday melody notes (Hz) with durations (beats at 90bpm)
+    const beat = 60/90; // seconds per beat
+    const notes = [
+      // "Happy Birthday to You" melody
+      [392,0.75],[392,0.25],[440,1],[392,1],[523,1],[494,2],
+      [392,0.75],[392,0.25],[440,1],[392,1],[587,1],[523,2],
+      [392,0.75],[392,0.25],[784,1],[659,1],[523,1],[494,1],[440,2],
+      [698,0.75],[698,0.25],[659,1],[523,1],[587,1],[523,2]
+    ];
+
+    const master = fallbackAudioCtx.createGain();
+    master.gain.setValueAtTime(0.18, fallbackAudioCtx.currentTime);
+    // Soft reverb-like effect
+    const convGain = fallbackAudioCtx.createGain();
+    convGain.gain.setValueAtTime(0.3, fallbackAudioCtx.currentTime);
+    master.connect(fallbackAudioCtx.destination);
+
+    let t = fallbackAudioCtx.currentTime + 0.1;
+    notes.forEach(([freq, dur])=>{
+      const osc = fallbackAudioCtx.createOscillator();
+      const env = fallbackAudioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      env.gain.setValueAtTime(0, t);
+      env.gain.linearRampToValueAtTime(1, t + 0.05);
+      env.gain.setValueAtTime(1, t + dur*beat - 0.08);
+      env.gain.linearRampToValueAtTime(0, t + dur*beat);
+      osc.connect(env);
+      env.connect(master);
+      osc.start(t);
+      osc.stop(t + dur*beat + 0.01);
+      t += dur * beat;
     });
+
+    // Also play soft chime harmony (octave above, quieter)
+    let t2 = fallbackAudioCtx.currentTime + 0.1;
+    notes.forEach(([freq, dur])=>{
+      const osc2 = fallbackAudioCtx.createOscillator();
+      const env2 = fallbackAudioCtx.createGain();
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(freq*2, t2);
+      env2.gain.setValueAtTime(0, t2);
+      env2.gain.linearRampToValueAtTime(0.35, t2 + 0.04);
+      env2.gain.setValueAtTime(0.35, t2 + dur*beat - 0.07);
+      env2.gain.linearRampToValueAtTime(0, t2 + dur*beat);
+      osc2.connect(env2);
+      env2.connect(master);
+      osc2.start(t2);
+      osc2.stop(t2 + dur*beat + 0.01);
+      t2 += dur * beat;
+    });
+
+    const totalDur = notes.reduce((s,[,d])=>s+d,0) * beat;
+    // Loop: schedule next play with a small gap
+    const loopTimeout = setTimeout(()=>{
+      if(fallbackPlaying && !fallbackMuted) playBirthdayMelody();
+    }, (totalDur + 1.5) * 1000);
+    fallbackNodes.push(loopTimeout);
+  }
+
+  function showToast(msg){
+    const toast=document.createElement('div');
+    toast.style.cssText='position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:rgba(10,14,26,0.9);border:1px solid rgba(212,168,85,0.25);padding:10px 20px;font-family:"Cormorant Garamond",serif;font-size:0.8rem;color:rgba(212,168,85,0.8);letter-spacing:2px;z-index:9000;backdrop-filter:blur(10px);transition:opacity 1s ease;white-space:nowrap;';
+    toast.textContent=msg;
+    document.body.appendChild(toast);
+    setTimeout(()=>{ toast.style.opacity=0; setTimeout(()=>toast.remove(),1000); },4000);
   }
 
   function startExperience(withAudio){
@@ -556,14 +677,7 @@
       audioEnabled=true;
       loadYouTubeAPI();
       if(ytReady) createYTPlayer();
-      // Show song info toast
-      setTimeout(()=>{
-        const toast=document.createElement('div');
-        toast.style.cssText='position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:rgba(10,14,26,0.9);border:1px solid rgba(212,168,85,0.25);padding:10px 20px;font-family:"Cormorant Garamond",serif;font-size:0.8rem;color:rgba(212,168,85,0.8);letter-spacing:2px;z-index:9000;backdrop-filter:blur(10px);transition:opacity 1s ease;white-space:nowrap;';
-        toast.textContent='♪ Playing your special song...';
-        document.body.appendChild(toast);
-        setTimeout(()=>{ toast.style.opacity=0; setTimeout(()=>toast.remove(),1000); },4000);
-      },2000);
+      setTimeout(()=>showToast('♪ Playing your special song...'),2000);
     }
     $('audio-btn').classList.add('visible');
     $('progress-dots').classList.add('visible');
@@ -572,18 +686,35 @@
 
   function toggleAudio(){
     const btn=$('audio-btn');
-    if(!ytPlayer || !ytReady){ return; }
-    try {
-      if(ytMuted){
-        ytPlayer.unMute(); ytPlayer.setVolume(30);
-        ytMuted=false; btn.textContent='🎵';
-        btn.title='Mute music';
+    // Toggle YouTube player
+    if(ytPlayer && ytReady && !ytFailed){
+      try {
+        if(ytMuted){
+          ytPlayer.unMute(); ytPlayer.setVolume(30);
+          ytMuted=false; btn.textContent='🎵'; btn.title='Mute music';
+        } else {
+          ytPlayer.mute();
+          ytMuted=true; btn.textContent='🔇'; btn.title='Unmute music';
+        }
+        return;
+      } catch(e){}
+    }
+    // Toggle fallback audio
+    if(fallbackPlaying){
+      if(fallbackMuted){
+        fallbackMuted=false;
+        btn.textContent='🎵'; btn.title='Mute music';
+        playBirthdayMelody();
       } else {
-        ytPlayer.mute();
-        ytMuted=true; btn.textContent='🔇';
-        btn.title='Unmute music';
+        fallbackMuted=true;
+        btn.textContent='🔇'; btn.title='Unmute music';
+        fallbackNodes.forEach(t=>clearTimeout(t));
+        fallbackNodes=[];
+        if(fallbackAudioCtx){
+          try { fallbackAudioCtx.suspend(); } catch(e){}
+        }
       }
-    } catch(e){}
+    }
   }
 
   /* ============================================================
