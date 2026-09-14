@@ -42,6 +42,7 @@
     }
     const s = document.createElement('script');
     s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+    s.crossOrigin = 'anonymous';
     s.onload = () => { THREE = window.THREE; setupThreeScene(); };
     s.onerror = () => setupCanvas2DFallback();
     document.head.appendChild(s);
